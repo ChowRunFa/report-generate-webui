@@ -15,7 +15,7 @@ const menus = [
     component: () => import('@/views/Documents.vue'),
     meta: {
       title: '文档',
-      icon: 'document',
+      icon: 'collection',
       showMenu: true
     }
   },
@@ -34,8 +34,8 @@ const menus = [
     path: '/user',
     name: 'user',
     meta: {
-      title: '用户中心',
-      icon: 'location',
+      title: '报告生成',
+      icon: 'tickets',
       showMenu: true
     },
     children: [
@@ -44,7 +44,8 @@ const menus = [
         name: 'userList',
         component: () => import('@/views/user/List.vue'),
         meta: {
-          title: '用户列表',
+          title: '论文数据',
+          icon: 'memo',
           showMenu: true
         }
       },
@@ -53,8 +54,18 @@ const menus = [
         name: 'userPortrait',
         component: () => import('@/views/user/Portrait.vue'),
         meta: {
-          title: '用户画像',
-          icon: 'User',
+          title: '新闻数据',
+          icon: 'document',
+          showMenu: true
+        }
+      },
+      {
+        path: '/user/patent',
+        name: 'userPatent',
+        component: () => import('@/views/user/Patent.vue'),
+        meta: {
+          title: '专利数据',
+          icon: 'notebook',
           showMenu: true
         }
       }

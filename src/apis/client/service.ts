@@ -7,7 +7,7 @@ import router from '@/router/index'
 class Service {
   service: AxiosInstance
 
-  constructor(baseURL = '/', timeout = 30000) {
+  constructor(baseURL = 'http://localhost:5000', timeout = 30000) {
     this.service = axios.create({
       baseURL,
       timeout,

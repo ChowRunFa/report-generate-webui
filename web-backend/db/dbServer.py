@@ -1,14 +1,26 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/6/25 11:50
 # @Author  : ChowRunFa
-# @File    : server.py
+# @File    : dbServer.py
 # @Software: PyCharm
+import sys,os
+
+
 import pymysql
-from dbConfig import *
 import time
 import logging
 import traceback
 import pymysql.cursors
+
+# MYSQL_HOST = "81.68.155.137"
+MYSQL_HOST = "127.0.0.1"
+MYSQL_DBNAME = "llm_report"
+MYSQL_USER = "root"
+MYSQL_PASSWORD = "123456"
+# MYSQL_PASSWORD = "b1a0546f381ff818"
+MYSQL_CHARSET = "utf8mb4"
+MYSQL_PORT = 3306
+
 
 #mysql settings
 class MySQLConfig(object):
