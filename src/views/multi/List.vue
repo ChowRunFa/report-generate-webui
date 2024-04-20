@@ -1,15 +1,11 @@
 <template>
-  <div class="about">
-    <h1>三级菜单</h1>
+  <div>
+    <iframe src="https://huggingface.co/spaces/shubhamagarwal92/LitLLM" width="100%" height="900"></iframe>
   </div>
 </template>
 
-<style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
+<script>
+export default {
+  name: 'EmbeddedPage'
 }
-</style>
+</script>

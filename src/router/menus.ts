@@ -44,7 +44,7 @@ const menus = [
         name: 'userList',
         component: () => import('@/views/user/List.vue'),
         meta: {
-          title: '论文数据',
+          title: '文献报告',
           icon: 'memo',
           showMenu: true
         }
@@ -54,7 +54,7 @@ const menus = [
         name: 'userPortrait',
         component: () => import('@/views/user/Portrait.vue'),
         meta: {
-          title: '新闻数据',
+          title: '综合报告',
           icon: 'document',
           showMenu: true
         }
@@ -64,7 +64,7 @@ const menus = [
         name: 'userPatent',
         component: () => import('@/views/user/Patent.vue'),
         meta: {
-          title: '专利数据',
+          title: '文献综述',
           icon: 'notebook',
           showMenu: true
         }

@@ -2,8 +2,6 @@
   <el-card>
     <div class="centered-form">
   <el-form :model="form" label-width="auto" style="max-width: 600px">
-
-
     <el-form-item label="模型API KEY">
       <el-input v-model="form.api_key" placeholder="请输入您的模型API KEY"/>
     </el-form-item>

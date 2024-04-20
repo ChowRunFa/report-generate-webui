@@ -6,13 +6,13 @@ sys.path.append("..")
 from objs.Paper import Paper
 from objs.Report import Report
 from utils.general_utils import is_valid_filepath
+from utils.markdown_utils import markdown_convertion
 from utils.general_utils import text2html
 from utils.general_utils import result
 
 from flask import Blueprint, request, jsonify
 
 api_report = Blueprint('api_report', __name__)
-
 
 def paper_report_main(args):
     if args.pdf_path:
@@ -35,7 +35,11 @@ def paper_report_main(args):
                         paper_list.append(Paper(path=os.path.join(root, filename)))
         print("------------------paper_num: {}------------------".format(len(paper_list)))
         [print(paper_index, paper_name.path.split('\\')[-1]) for paper_index, paper_name in enumerate(paper_list)]
-        report_htmls = [[text2html(sublist)] for sublist in report.summary_paper(paper_list=paper_list)]
+        # report_htmls = [[text2html(sublist)] for sublist in report.summary_paper(paper_list=paper_list)]
+
+        report_htmls = [[markdown_convertion('\n'.join(sublist))] for sublist in report.summary_paper(paper_list=paper_list)]
+        for sublist in report.summary_paper(paper_list=paper_list):
+            print('\n'.join(sublist))
         return report_htmls
 
 @api_report.route('/paper_report', methods=['POST'])
@@ -65,7 +69,7 @@ def api_paper_report():
 
     start_time = time.time()
     report_html = paper_report_main(args=parser.parse_args())
-    print(report_html)
+    # print(report_html)
     print("summary time:", time.time() - start_time)
 
     return result(200, '报告生成完成，请查收~',{'report_html':report_html})
