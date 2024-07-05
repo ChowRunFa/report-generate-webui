@@ -13,11 +13,15 @@
     "@element-plus/icons-vue": "^2.1.0",
     "@vueuse/core": "^10.6.1",
     "axios": "^1.4.0",
+    "babel-runtime": "^6.26.0",
     "element-plus": "^2.3.2",
+    "markdown-it": "^14.1.0",
     "mermaid": "^10.9.0",
+    "mermaid.cli": "^0.5.1",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.32",
     "vue": "^3.2.47",
+    "vue-markdown": "^2.2.4",
     "vue-router": "^4.1.6"
   },
   "devDependencies": {

@@ -55,3 +55,38 @@ def upload_file():
 
 
 
+
+
+# 处理文件上传的路由处理函数
+@api_upload.route('/upload_local', methods=['POST'])
+def upload_file_local():
+    # 检查是否有文件被上传
+    if 'file' not in request.files:
+        return 'No file uploaded', 400
+
+    file = request.files['file']
+
+    # 检查文件名是否为空
+    if file.filename == '':
+        return 'Empty filename', 400
+
+    # 检查文件类型是否允许上传
+    if not allowed_file(file.filename):
+        return 'Invalid file type', 400
+
+    # 将文件保存到指定的位置
+    # 生成当前时间戳
+    timestamp = str(int(time.time()))
+    # 创建以时间戳为名称的文件夹
+    folder_path = './uploads/paper/local/' + timestamp
+    os.makedirs(folder_path, exist_ok=True)
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(folder_path, filename)
+    file.save(file_path)
+
+    # 构建文件路径的响应
+    response_data = {
+        'file_path': file_path
+    }
+
+    return jsonify(response_data)

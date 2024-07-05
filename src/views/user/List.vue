@@ -36,11 +36,11 @@
                  <el-card >
 
   <el-form-item label="关键词">
-    <el-input  placeholder="填入您所研究的关键词（可选，默认为空）"></el-input>
+    <el-input  placeholder="填入您所研究的关键词（可选，默认为空）" v-model="keywords"></el-input>
   </el-form-item>
 
   <el-form-item label="语言">
-    <el-select  placeholder="请选择输出语言(默认中文)">
+    <el-select  placeholder="请选择输出语言(默认中文)" v-model="language">
       <el-option label="简体中文" value="zh"></el-option>
       <el-option label="English" value="en"></el-option>
       <el-option label="日本語" value="jp"></el-option>
@@ -52,14 +52,20 @@
 </div>
                     </el-card>
   </div>
+
       </el-aside>
       <el-main>
   <el-card  >
     <div class="report-container">
-  <div class="demo-pagination-block">
-    <div v-for="content in paginatedContent" class="report-output" v-html="content">
+  <div class="demo-pagination-block" >
+    <!--    <div v-for="(content) in (12)" class="report-output"  v-html="content">-->
+    <!-- 打印按钮 -->
+   <el-button type="primary" v-if="paginatedContent[0]" @click="printPDF"><el-icon><Download /></el-icon></el-button>
+    <div v-for="content in paginatedContent" class="report-output" v-html="content" id="report-html">
 
     </div>
+
+
     <el-pagination
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
@@ -85,15 +91,21 @@
 </template>
 
 <script setup lang="ts">
-import { RefreshRight, UploadFilled } from '@element-plus/icons-vue'
+import { UploadFilled } from '@element-plus/icons-vue'
 import { ElButton, ElMessage } from 'element-plus'
 import { computed, ref } from 'vue'
 import { paper_report } from '@/apis/report/paper'
 
+const images = ref<string[]>([]);
 const uploadRef = ref(null)
 const fileList = ref([])
 const htmlContent = ref([]); // 存储后端返回的htmlContent列表
+// const htmlContent = ref(
+// ['<div class="markdown-body"><h2>Paper:1</h2>\n<ol>\n<li>标题: AutoKG: Efficient Automated Knowledge Graph (自动知识图谱:高效自动化知识图谱)</li>\n<li>Title: AutoKG: Efficient Automated Knowledge Graph</li>\n<li>Authors: Bohan Chen and Andrea L. Bertozzi</li>\n<li>Affiliation: Department of Mathematics, University of California, Los Angeles (加州大学洛杉矶分校数学系)</li>\n<li>Keywords: Large Language Models, Knowledge Graph, Graph Learning, Retrieval-augmented Generation</li>\n</ol>\n<h2>Summary:</h2>\n<ul>\n<li>(1): 本文的研究背景是传统方法在将大型语言模型（LLMs）与知识库链接时往往无法捕捉复杂的关系动态。</li>\n<li>(2): 过去的方法包括语义相似性搜索，存在问题是难以捕捉复杂的关系动态。本文的方法是有充分动机的，提出了一种轻量高效的自动化知识图谱构建方法。</li>\n<li>(3): 本文提出的研究方法是通过使用LLM提取关键词，然后通过图拉普拉斯学习评估每对关键词之间的关系权重。使用向量相似性和基于图的关联的混合搜索方案来丰富LLM响应。</li>\n<li>(4): 本文的方法在任务上取得了更全面和相互关联的知识检索机制，从而增强了LLMs在生成更具洞察力和相关性输出方面的能力。</li>\n</ul>\n<h2>Methods:</h2>\n<ul>\n<li>\n<p>(1): 使用大型语言模型（LLMs）提取关键词。</p>\n</li>\n<li>\n<p>(2): 通过图拉普拉斯学习评估每对关键词之间的关系权重。</p>\n</li>\n<li>\n<p>(3): 利用向量相似性和基于图的关联的混合搜索方案来丰富LLMs响应。</p>\n</li>\n<li>\n<p>(4): 通过构建更全面和相互关联的知识检索机制增强LLMs的生成能力。</p>\n</li>\n</ul>\n<h2>Conclusion:</h2>\n<ul>\n<li>\n<p>(1): 本研究的意义在于提出了一种轻量高效的自动化知识图谱构建方法，弥补了传统方法在捕捉复杂关系动态方面的不足。</p>\n</li>\n<li>\n<p>(2): 创新点: 提出了基于大型语言模型（LLMs）的关键词提取和图拉普拉斯学习的方法，增强了知识检索机制；表现: 在任务上取得更全面和相互关联的知识检索机制；工作量: 通过轻量高效的自动化方法减少了工作量。</p>\n</li>\n</ul></div>\n<img src="/src/assets/mermaid_imgs/diagram1.png" width="500" alt="">', '<div class="markdown-body"><h2>Paper:1</h2>\n<ol>\n<li>标题: AutoKG: Efficient Automated Knowledge Graph (自动知识图谱:高效自动化知识图谱)</li>\n<li>Title: AutoKG: Efficient Automated Knowledge Graph</li>\n<li>Authors: Bohan Chen and Andrea L. Bertozzi</li>\n<li>Affiliation: Department of Mathematics, University of California, Los Angeles (加州大学洛杉矶分校数学系)</li>\n<li>Keywords: Large Language Models, Knowledge Graph, Graph Learning, Retrieval-augmented Generation</li>\n</ol>\n<h2>Summary:</h2>\n<ul>\n<li>(1): 本文的研究背景是传统方法在将大型语言模型（LLMs）与知识库链接时往往无法捕捉复杂的关系动态。</li>\n<li>(2): 过去的方法包括语义相似性搜索，存在问题是难以捕捉复杂的关系动态。本文的方法是有充分动机的，提出了一种轻量高效的自动化知识图谱构建方法。</li>\n<li>(3): 本文提出的研究方法是通过使用LLM提取关键词，然后通过图拉普拉斯学习评估每对关键词之间的关系权重。使用向量相似性和基于图的关联的混合搜索方案来丰富LLM响应。</li>\n<li>(4): 本文的方法在任务上取得了更全面和相互关联的知识检索机制，从而增强了LLMs在生成更具洞察力和相关性输出方面的能力。</li>\n</ul>\n<h2>Methods:</h2>\n<ul>\n<li>\n<p>(1): 使用大型语言模型（LLMs）提取关键词。</p>\n</li>\n<li>\n<p>(2): 通过图拉普拉斯学习评估每对关键词之间的关系权重。</p>\n</li>\n<li>\n<p>(3): 利用向量相似性和基于图的关联的混合搜索方案来丰富LLMs响应。</p>\n</li>\n<li>\n<p>(4): 通过构建更全面和相互关联的知识检索机制增强LLMs的生成能力。</p>\n</li>\n</ul>\n<h2>Conclusion:</h2>\n<ul>\n<li>\n<p>(1): 本研究的意义在于提出了一种轻量高效的自动化知识图谱构建方法，弥补了传统方法在捕捉复杂关系动态方面的不足。</p>\n</li>\n<li>\n<p>(2): 创新点: 提出了基于大型语言模型（LLMs）的关键词提取和图拉普拉斯学习的方法，增强了知识检索机制；表现: 在任务上取得更全面和相互关联的知识检索机制；工作量: 通过轻量高效的自动化方法减少了工作量。</p>\n</li>\n</ul></div>\n<img src="/src/assets/mermaid_imgs/diagram2.png" width="500" alt="">']); // 静态的HTML内容数组
+
 const filePath = ref('')
+const keywords = ref('')
+const language = ref('')
 
 
 const currentPage = ref(1); // 当前页码
@@ -120,7 +132,6 @@ const handleSuccess = (response, file, fileList) => {
     message: 'Upload successful!',
     type: 'success',
   })
-
 }
 
 const handleError = (err, file, fileList) => {
@@ -165,10 +176,16 @@ const generateReport = async () => {
   if (filePath.value) {
       const formData = new FormData()
       formData.append(   'file_path',filePath.value)
+      formData.append(   'keywords',keywords.value)
+      formData.append(   'language',language.value)
       paper_reporting(formData)
   }
 };
 
+// 定义方法来获取图片路径
+const getDiagramImagePath = (pageIndex: number) => {
+  return `/src/assets/mermaid_imgs/diagram${pageIndex + 1}.png`;
+};
 
 const handleSizeChange = (val: number) => {
   console.log(`${val} items per page`)
@@ -176,6 +193,111 @@ const handleSizeChange = (val: number) => {
 const handleCurrentChange = (val: number) => {
   console.log(`current page: ${val}`)
 }
+
+ const printPDF = () => {
+  // 定义打印样式
+  let printStyle = `
+    <style>
+      @media print {
+        #report-html {
+          position: static !important;
+        }
+        .el-button {
+          display: none !important;
+        }
+      }
+
+.section {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+p{
+            margin:1em 0;
+            padding:0 0 0 2em;
+            text-indent:-1.5em;
+            font:normal normal 16px/1.6em SimSun-ExtB;
+            color:#000;
+        }
+
+.section-title {
+  text-align: center;
+  font-size: 30px;
+  font-weight: bold;
+    font-family: SimSun-ExtB,serif;
+}
+
+.section-subtitle {
+    text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  font-family: SimSun-ExtB,serif;
+}
+
+.section-content {
+  padding: 20px;
+}
+
+.subsection {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.subsection-title {
+  font-size: 24px;
+  font-weight: bold;
+    font-family: SimSun-ExtB,serif;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.centered-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.detail-info{
+  font-size: 15px;
+    font-family: STXihei,sans-serif;
+}
+.centered-list li {
+  text-align: center;
+  padding: 5px;
+}
+
+
+.teacher-info {
+  border-collapse: collapse;
+}
+.teacher-info th, .teacher-info td {
+  border: 1px solid black;
+  padding: 8px;
+}
+.teacher-info th {
+  background-color: #f2f2f2;
+}
+    </style>
+  `;
+
+  // 获取<el-container>的HTML内容
+  let containerHtml = document.getElementById('report-html').innerHTML;
+
+  // 创建一个新的窗口，打印HTML内容
+let printWindow = window.open('www.xxx.com', '_blank');
+  printWindow.document.write(printStyle + containerHtml);
+  printWindow.print();
+  printWindow.close();
+}
+
+
+
 
 </script>
 
@@ -227,10 +349,10 @@ padding: 20px;
 .report-output {
   margin-top: 20px;
 }
-
-.common-layout{
-   background-color: rgb(199,226,231);
+.common-layout {
+  background-image: radial-gradient(circle at center, #baf39d, #a8d8d8, #e5dfc8);
 }
+
 
 .report-container {
       flex: 1;

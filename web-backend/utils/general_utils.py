@@ -2,6 +2,8 @@ import json
 import os
 import sys
 
+from langchain_community.chat_models.openai import ChatOpenAI
+
 sys.path.append("..")
 
 from utils.split_utils import split_text_to_satisfy_token_limit
@@ -112,22 +114,11 @@ stateDiagram-v2
 PROMPT_7 = """
 请你给出围绕“{subject}”的实体关系图，使用mermaid语法，mermaid语法举例：
 ```mermaid
-erDiagram
-    CUSTOMER ||--o{ ORDER : places
-    ORDER ||--|{ LINE-ITEM : contains
-    CUSTOMER {
-        string name
-        string id
-    }
-    ORDER {
-        string orderNumber
-        date orderDate
-        string customerID
-    }
-    LINE-ITEM {
-        number quantity
-        string productID
-    }
+graph LR
+    A[Hard skill] --> B(Programming)
+    A[Hard skill] --> C(Design)
+    D[Soft skill] --> E(Coordination)
+    D[Soft skill] --> F(Communication)
 ```
 """
 #象限提示图
@@ -190,6 +181,7 @@ def get_mermaid(content,llm):
     # 设置OpenAI API密钥
     from dotenv import load_dotenv
     load_dotenv()
+    # llm = ChatOpenAI()
     ############################## <第 0 步，切割输入> ##################################
     # 借用PDF切割中的函数对文本进行切割
     TOKEN_LIMIT_PER_FRAGMENT = 2500
@@ -232,7 +224,7 @@ def get_mermaid(content,llm):
     #     openai_api_key="EMPTY",
     #     streaming=False,
     # )
-    # llm = ChatOpenAI()
+
     for i in range(3):
         gpt_say = llm([HumanMessage(content=i_say)]).content
         if gpt_say in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:  # 判断返回是否正确
@@ -262,6 +254,18 @@ def get_mermaid(content,llm):
     gpt_say = llm([HumanMessage(content=i_say)]).content
     return(gpt_say)
 
+def get_latest_folder():
+    directory = "../uploads/paper/"  # 指定文件夹路径
+    folders = os.listdir(directory)  # 列出文件夹下的所有文件和文件夹
+    folders_with_timestamp = [(folder, os.path.getmtime(directory + folder)) for folder in folders]
+    folders_with_timestamp.sort(key=lambda x: x[1], reverse=True)  # 根据时间戳进行降序排序
+
+    if folders_with_timestamp:
+        latest_folder = folders_with_timestamp[0][0]  # 获取最新的文件夹名
+        folder_path = directory + latest_folder  # 构建最新文件夹的完整路径
+        return folder_path
+    else:
+        return None
 
 
 #

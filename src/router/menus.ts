@@ -75,29 +75,42 @@ const menus = [
     path: '/multi',
     name: 'multi',
     meta: {
-      title: '多级菜单',
-      icon: 'ForkSpoon',
+      title: '检索增强',
+      icon: 'ZoomIn',
       showMenu: true
     },
     children: [
       {
         path: '/multi/two',
         name: 'multiTwo',
-        component: () => import('@/views/multi/List.vue'),
+        // component: () => import('@/views/multi/ConsKG.vue'),
         meta: {
-          title: '二级菜单',
+          title: '知识图谱',
+          icon:'Share',
           showMenu: true
         },
         children: [
           {
-            path: '/multi/two/list',
-            name: 'multiTwoList',
-            component: () => import('@/views/multi/List.vue'),
+            path: '/multi/two/ConsKG',
+            name: 'multiTwoConsKG',
+            component: () => import('@/views/multi/ConsKG.vue'),
             meta: {
-              title: '三级菜单',
+              title: '图谱构建',
+              icon:'Aim',
               showMenu: true
-            }
+            },
+          }, {
+            path: '/multi/two/KGRepo',
+            name: 'multiTwoKGRepo',
+            component: () => import('@/views/multi/KGRepo.vue'),
+            meta: {
+              title: '图谱报告',
+              icon:'SetUp',
+              showMenu: true
+            },
+
           }
+
         ]
       }
     ]
@@ -106,8 +119,8 @@ const menus = [
     path: '/admin',
     name: 'admin',
     meta: {
-      title: '管理员',
-      icon: 'Avatar',
+      title: '质量评估',
+      icon: 'DataAnalysis',
       showMenu: true
     },
     children: [
@@ -116,7 +129,8 @@ const menus = [
         name: 'adminList',
         component: () => import('@/views/admin/List.vue'),
         meta: {
-          title: '管理员列表',
+          title: '文本质量',
+          icon: 'Money',
           showMenu: true
         }
       }

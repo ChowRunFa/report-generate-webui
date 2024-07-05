@@ -2,13 +2,13 @@
   <main>
     <el-row :gutter="12" class="bt10">
       <el-col :span="8">
-        <el-card shadow="hover" class="card-font"> 简洁 </el-card>
+        <el-card shadow="hover" class="card-font"> S-LLMs </el-card>
       </el-col>
       <el-col :span="8">
-        <el-card shadow="hover" class="card-font"> 大气 </el-card>
+        <el-card shadow="hover" class="card-font"> C-LLMs </el-card>
       </el-col>
       <el-col :span="8">
-        <el-card shadow="hover" class="card-font"> 好用 </el-card>
+        <el-card shadow="hover" class="card-font"> LLMs-KG </el-card>
       </el-col>
     </el-row>
     <div class="bt10">
@@ -78,7 +78,7 @@
             </div>
           </template>
           <div v-for="o in 4" :key="o" class="text item">
-            {{ 'List item ' + o }}
+            {{ '文献 ' + o }}
           </div>
         </el-card>
       </el-col>

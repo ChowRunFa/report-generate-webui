@@ -12,6 +12,8 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
+
+from utils.markdown_utils import markdown_convertion
 from utils.general_utils import result
 def load_json(path: str) -> Any:
     """
@@ -47,15 +49,15 @@ def load_all_prompts(file_path: str = None) -> str:
 
 class RelatedWork:
     def __init__(self,args=None):
-        self.base_paper_url = args.base_paper_url or "https://arxiv.org/abs/1706.03762"
-        self.sort_by = args.sort_by or "Citations"
-        self.num_papers = args.num_papers or 3
-        self.s2_api_key = args.s2_api_key or "default_s2_api_key"
-        self.rerank = args.rerank or False
-        self.keyword = args.keyword or "None"
-        self.base_abstract = args.base_abstract or "default_base_abstract"
-        self.cite_format = args.cite_format or ""
-        self.limit_words = args.limit_words or 300
+        self.base_paper_url = args.base_paper_url
+        self.sort_by = args.sort_by
+        self.num_papers = args.num_papers
+        self.s2_api_key = args.s2_api_key
+        self.rerank = args.rerank
+        self.keyword = args.keyword
+        self.base_abstract = args.base_abstract
+        self.cite_format = args.cite_format
+        self.limit_words = args.limit_words
         self.llm =  ChatOpenAI(
                 model_name=args.model,
                 openai_api_base=args.api_base,
@@ -203,11 +205,11 @@ class RelatedWork:
         """
         messages = [
             SystemMessage(role='system',
-                          content="You are a helpful assistant."),
+                          content="You are a helpful assistant"),
             HumanMessage(role='user', content="{}".format(json_data['prompt']))
         ]
-
-        response = self.llm(messages)
+        llm = self.llm
+        response = llm(messages)
         # result = response.content
         return response.content
 
@@ -226,7 +228,7 @@ class RelatedWork:
         # Call the async function to execute the code
 
     def generate_reference(self):
-
+        print("Generating")
         try:
             if self.base_paper_url:
                 hist_response = f"Finding recommendations from S2 API based on the paper \n {self.base_paper_url}"
@@ -243,14 +245,16 @@ class RelatedWork:
                 hist_response = f"LLM summarized keyword query to be used for S2 API: \n {query}"
                 papers = self.find_basis_paper(query)
         except:
+            print("Exception: 使用S2没有搜索到相关的文章，请尝试修改查询条件~")
             return  "Exception: 使用S2没有搜索到相关的文章，请尝试修改查询条件~"
         if not papers:
+            print("Exception:使用S2没有搜索到相关的文章，请尝试修改查询条件~")
             return "使用S2没有搜索到相关的文章，请尝试修改查询条件~"
         papers = self.sort_papers(papers)
-        try:
-            papers = self.check_matching_paper(papers)
-        except:
-            print("WER failed")
+        # try:
+        #     papers = self.check_matching_paper(papers)
+        # except:
+        #     print("WER failed")
         papers = self.sort_papers(papers)
         reference_markdown, cite_text = self.get_markdown_query_text(papers)
         if self.rerank == "True":
@@ -274,11 +278,12 @@ class RelatedWork:
         #         print("Cant retrieve data for base paper!")
         papers = papers[:self.num_papers]
         reference_markdown, cite_text = self.get_markdown_query_text(papers)
-
+        print("cite_text----------",cite_text)
         return reference_markdown, cite_text
 
     def generate_relatedwork(self):
         reference_markdown, cite_text = self.generate_reference()
+
         if cite_text =="":
             return "How may I help?"
 
@@ -290,8 +295,8 @@ class RelatedWork:
             complete_prompt = self.format_prompt(base_prompt=self.vanilla_prompt, cite_text=cite_text, plan="")
         json_data = {"prompt": complete_prompt}
         response = self.run_open_ai_api(json_data)
-
-        return result(200,'OK',{'relatedwork':response,'reference':reference_markdown})
+        print({'relatedwork':response,'reference':reference_markdown})
+        return result(200,'OK',{'relatedwork':markdown_convertion(response),'reference':reference_markdown})
     def generate_relatedwork_stream(self):
         reference_markdown, cite_text = self.generate_reference()
         print(reference_markdown)

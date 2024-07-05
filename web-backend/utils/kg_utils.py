@@ -18,22 +18,22 @@ def get_num_tokens(texts, model):
         num_tokens.append(len(encoding.encode(text)))
     return num_tokens
 
-def get_completion(prompt, model_name="gpt-3.5-turbo-16k", max_tokens=256, retry_times=3, temperature=0.1, top_p=0.3):
+def get_completion(prompt,client, model_name="gpt-3.5-turbo-16k", max_tokens=256, retry_times=3, temperature=0.1, top_p=0.3):
     for i in range(retry_times):
         try:
             t = time.time()
             if model_name.startswith("gpt-3.5") or model_name.startswith("gpt-4"):
                 messages = [{"role": "user", "content": prompt}]
-                response = openai.ChatCompletion.create(
+                response = client.chat.completions.create(
                     model=model_name,
                     messages=messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
                     top_p=top_p,
                 )
-                result = response.choices[0].message["content"]
+                result = response.choices[0].message.content
             else:
-                response = openai.Completion.create(
+                response = client.chat.completions.create(
                     model=model_name,
                     prompt=prompt,
                     temperature=temperature,

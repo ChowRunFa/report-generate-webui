@@ -5,7 +5,7 @@ import openai
 import sentence_transformers
 import torch
 from annoy import AnnoyIndex
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from scipy import sparse
 from scipy.sparse import diags, csr_matrix
 from sklearn.cluster import KMeans
@@ -15,7 +15,7 @@ import graphlearning as gl
 import tiktoken
 import string
 import time
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 
 from openai import OpenAI
 # graph visualization
@@ -27,24 +27,24 @@ sys.path.append("..")
 from utils.kg_utils import *
 
 class KG_Class():
-    def __init__(self, texts: list, source: list, embedding_model: str, llm_model: str, openai_api_key: str,
-                 openai_api_base: str,
+    def __init__(self, texts: list, source: list,
                  main_topic: str,
-                 embedding: bool = True):
-        openai.api_key = openai_api_key
-        openai.api_base = openai_api_base
+                 embedding: bool = True, embedding_model: str = 'bge-m3',args=None):
+        self.api_key = args.api_key
+        self.api_base = args.api_base
+        self.llm_model = args.model
         self.texts = texts
         self.embedding_model = embedding_model
-        self.llm_model = llm_model
         self.source = source
-        self.client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
+        self.client = OpenAI(api_key=self.api_key, base_url=self.api_base)
+
 
         # self.embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
         model = r'E:\LargeFiles\Models\bge-m3'
         self.embeddings = HuggingFaceEmbeddings(model_name=model)
         if embedding:
-            # self.vectors = np.array(self.embeddings.embed_documents(self.texts))
-            self.vectors = self.get_embedding(self.texts)
+            self.vectors = np.array(self.embeddings.embed_documents(self.texts))
+            # self.vectors = self.get_embedding(self.texts)
             # 初始化加载器
             # db = Chroma.from_documents(split_docs, self.embeddings, persist_directory="./chroma/openai/news_test")
             # # 持久化
@@ -59,7 +59,7 @@ class KG_Class():
         if texts is None:
             self.token_counts = None
         else:
-            self.token_counts = get_num_tokens(texts, model=llm_model)
+            self.token_counts = get_num_tokens(texts, model=self.llm_model)
 
         self.separator = "\n* "
         self.main_topic = main_topic
@@ -69,8 +69,8 @@ class KG_Class():
         self.keyvectors = None
         self.U_mat = None
         self.pred_mat = None
-        self.A = None
-        self.dist_mat = None
+        self.A = None# 邻接矩阵
+        self.dist_mat = None #边权矩阵
 
         # completion parameters
         self.temperature = 0.1
@@ -81,7 +81,7 @@ class KG_Class():
             model=self.embedding_model,
             input=text
         )
-        return result["data"][0]["embedding"]
+        return result.data[0].embedding
 
     def update_keywords(self, keyword_list):
         self.keywords = keyword_list
@@ -199,6 +199,7 @@ Processed Keywords:
 
         input_tokens = len(self.encoding.encode(",".join(core_list)))
         response, _, tokens = get_completion(prompt,
+                                             client=self.client,
                                              model_name=model,
                                              max_tokens=input_tokens,
                                              temperature=self.temperature,
@@ -308,6 +309,7 @@ Your processed keywords:
 
         num_tokens = len(self.encoding.encode(keyword_string))
         keyword_string, _, tokens = get_completion(quick_prompt(keyword_string, task1),
+                                                   client=self.client,
                                                    model_name=model,
                                                    max_tokens=num_tokens,
                                                    temperature=self.temperature,
@@ -316,6 +318,7 @@ Your processed keywords:
 
         num_tokens = len(self.encoding.encode(keyword_string))
         keyword_string, _, tokens = get_completion(quick_prompt(keyword_string, task2),
+                                                   client=self.client,
                                                    model_name=model,
                                                    max_tokens=num_tokens,
                                                    temperature=self.temperature,
@@ -324,6 +327,7 @@ Your processed keywords:
 
         num_tokens = len(self.encoding.encode(keyword_string))
         keyword_string, _, tokens = get_completion(quick_prompt(keyword_string, task3),
+                                                   client=self.client,
                                                    model_name=model,
                                                    max_tokens=num_tokens,
                                                    temperature=self.temperature,
@@ -407,6 +411,7 @@ Your response:
             print(prompt)
 
         response, _, tokens = get_completion(prompt,
+                                             client=self.client,
                                              model_name=model,
                                              max_tokens=200,
                                              temperature=self.temperature,
@@ -442,7 +447,8 @@ Your response:
 
         all_tokens = 0
         cluster_names = []
-        for i in range(len(kmeans.cluster_centers_)):
+        # for i in range(len(kmeans.cluster_centers_)):
+        for i in range(len(kmeans.cluster_centers_)//len(kmeans.cluster_centers_)):
             center = kmeans.cluster_centers_[i]
             indx = np.arange(len(self.texts))[kmeans.labels_ == i]
             if select_mtd == 'similarity':
@@ -514,7 +520,7 @@ Your response:
                 similarity = 'angular'
             else:
                 similarity = dist_metric
-            knn_ind, knn_dist = autoKG.ANN_search(self.vectors, core_ebds, k, similarity=similarity)
+            knn_ind, knn_dist = KG_Class.ANN_search(self.vectors, core_ebds, k, similarity=similarity)
         elif method == 'dense':
             dist_mat = pairwise_distances(self.vectors, core_ebds, metric=dist_metric)
             knn_ind = []
@@ -527,7 +533,7 @@ Your response:
         else:
             sys.exit('Invalid choice of method ' + dist_metric)
 
-        knn_ind = autoKG.replace_labels(knn_ind, core_labels)
+        knn_ind = KG_Class.replace_labels(knn_ind, core_labels)
 
         if return_prob:
             D = knn_dist * knn_dist
@@ -554,31 +560,35 @@ Your response:
 
         knn_ind, knn_dist = self.distance_core_seg(core_texts, core_labels, k,
                                                    dist_metric, method='annoy', return_full=False, return_prob=False)
+        # 使用指定的距离度量和方法计算核心文本的最近邻
 
         if core_labels is None:
-            core_labels = np.arange(len(core_texts))
+            core_labels = np.arange(len(core_texts))# 如果未提供核心标签，则生成默认的核心标签
 
         else:
-            core_labels = np.array(core_labels)
+            core_labels = np.array(core_labels) # 将核心标签转换为数组形式
 
         select_inds = np.array([], dtype=np.int64)
         select_labels = np.array([], dtype=np.int64)
         all_inds = np.arange(len(self.vectors))
         for i in range(len(core_texts)):
             select_ind = all_inds[knn_ind == i][np.argsort(knn_dist[knn_ind == i])[:trust_num]]
+            # 从每个核心文本的最近邻中选择前 trust_num 个元素的索引
             select_inds = np.concatenate((select_inds, select_ind))
             select_labels = np.concatenate((select_labels, core_labels[i] * np.ones(len(select_ind))))
-
-        model = gl.ssl.laplace(self.weightmatrix)
+        # 将选定的索引和对应的核心标签添加到相应的数组中
+        model = gl.ssl.laplace(self.weightmatrix)# 使用权重矩阵创建一个基于拉普拉斯的 半监督学习SSL 模型
         print(select_inds)
-        U = model._fit(select_inds, select_labels)
+        U = model._fit(select_inds, select_labels)# 将模型拟合到选定的索引和标签上
 
         if return_full:
-            return U
+            return U# 返回完整的基于拉普拉斯的 SSL 结果
         else:
-            return np.argmax(U, axis=1)
+            return np.argmax(U, axis=1) # 返回 U 的每行中最大值的索引
+        #U 中的值可能表示样本属于不同类别的概率分布。通过使用 np.argmax(U, axis=1)，可以获取每个样本的最大概率值所对应的类别索引，从而进行最终的分类决策。
 
     def PosNNeg_seg(self, core_text, trust_num=5, k=20, dist_metric='cosine', negative_multiplier=3, seg_mtd='laplace'):
+        # 根据指定的方法（'kmeans'、'laplace'或'poisson'）对核心文本进行分割
         if self.weightmatrix is None:
             self.make_graph(k=20)
         knn_ind, knn_dist = self.distance_core_seg([core_text], [0], k,
@@ -638,7 +648,7 @@ Your response:
                 pred_mat[:, l_ind] = np.where(U_mat[:, l_ind] >= threshold, 1, 0)
 
         if return_mat:
-            # A = autoKG.create_sparse_matrix_A(pred_mat, np.array(core_labels))
+            # A = KG_Class.create_sparse_matrix_A(pred_mat, np.array(core_labels))
             A = csr_matrix((pred_mat.T @ pred_mat).astype(int))
             A = A - diags(A.diagonal())
             self.U_mat = U_mat
@@ -688,6 +698,7 @@ Your response:
 
     ################################ functions for search and chat
     def angular_search(self, query, k=5, search_mtd='pair_dist', search_with='texts'):
+        # 角度搜索
         if not self.content_check(include_keygraph=False):
             raise ValueError('Missing Contents')
 
@@ -713,7 +724,7 @@ Your response:
                 knn_ind[i] = np.argsort(dist_mat[i])[:k]
                 knn_dist[i] = dist_mat[i, knn_ind[i].astype(int)]
         elif search_mtd == 'knn':
-            knn_ind, knn_dist = autoKG.ANN_search(query_vec, s_vecs, k, similarity='angular')
+            knn_ind, knn_dist = KG_Class.ANN_search(query_vec, s_vecs, k, similarity='angular')
         else:
             sys.exit('Invalid choice of method ' + search_mtd)
 
@@ -901,6 +912,7 @@ Your response:
             print(prompt)
 
         response, _, all_tokens = get_completion(prompt,
+                                                 client=self.client,
                                                  model_name=model,
                                                  max_tokens=output_tokens,
                                                  temperature=self.temperature,
@@ -1064,7 +1076,7 @@ Your response:
 
     @staticmethod
     def ANN_search(X1, X2, k, similarity='euclidean'):
-        # annoy search function
+        # annoy search function高效近似最近邻搜索
         # O(NlogN)
         M, d1 = X1.shape
         N, d2 = X2.shape
