@@ -53,10 +53,6 @@ def upload_file():
     return jsonify(response_data)
 
 
-
-
-
-
 # 处理文件上传的路由处理函数
 @api_upload.route('/upload_local', methods=['POST'])
 def upload_file_local():
