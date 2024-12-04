@@ -14,15 +14,19 @@
     "@vueuse/core": "^10.6.1",
     "axios": "^1.4.0",
     "babel-runtime": "^6.26.0",
+    "cytoscape": "^3.30.2",
     "element-plus": "^2.3.2",
     "markdown-it": "^14.1.0",
     "mermaid": "^10.9.0",
     "mermaid.cli": "^0.5.1",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.32",
-    "vue": "^3.2.47",
+    "tailwindcss": "^3.4.13",
+    "vue": "^3.3.4",
     "vue-markdown": "^2.2.4",
-    "vue-router": "^4.1.6"
+    "vue-mermaid-render": "^0.1.4",
+    "vue-router": "^4.1.6",
+    "安装": "link://安装"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",

@@ -1,205 +1,461 @@
 <template>
+  <div class="common-layout">
+    <el-container>
+      <el-header>
+        <h1>📃智能报告生成‍🚀</h1>
+      </el-header>
 
-    <div class="common-layout " >
-    <el-container >
-      <el-aside width="1"  >
-        <div class="container">
-        <el-card >
-  <div class="upload-container">
-    <el-upload
-      ref="uploadRef"
-      class="upload-demo upload-vertical"
-      drag
-      action="http://localhost:5000/upload"
-      multiple
-      :file-list="fileList"
-      :on-success="handleSuccess"
-      :on-error="handleError"
-      :auto-upload="false"
-    >
-      <div class="upload-area " >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text " >
-          Drop file here or <em>click to upload</em>
+      <el-main>
+        <el-row :gutter="20">
+          <!-- 上传和参数设置 -->
+          <el-col :span="8">
+
+            <el-card>
+              <h2>上传文件</h2>
+
+              <el-upload
+                ref="uploadRef"
+                class="upload-demo"
+                drag
+                action="http://localhost:5000/upload"
+                multiple
+                :file-list="fileList"
+                :on-success="handleSuccess"
+                :on-error="handleError"
+                :auto-upload="false"
+              >
+                <el-icon><upload-filled /></el-icon>
+                <div class="el-upload__text">
+                  将文件拖到此处，或<em>点击上传</em>
+                </div>
+              </el-upload>
+              <div class="button-group">
+                <el-button type="primary" @click="submitUpload">确认上传</el-button>
+
+                <el-button @click="clearFiles">清空</el-button>
+              </div>
+            </el-card>
+
+                        <el-card>
+              <h2>知识库文件</h2>
+          <div>
+            <!-- 搜索框 -->
+            <el-input
+              v-model="searchQueryDoc"
+              placeholder="Search..."
+              clearable
+              @input="handleSearch"
+              style="margin-bottom: 20px; width: 300px;"
+            />
+
+            <!-- 表格 -->
+            <el-table
+              :data="pagedDataDoc"
+              style="width: 100%"
+              :row-class-name="tableRowClassName"
+              :border="true"
+            >
+              <el-table-column prop="title" label="文件" />
+<!--              <el-table-column prop="date" label="时间" />-->
+              <el-table-column label="操作" >
+                <template #default="scope">
+                  <el-button
+                    type="primary"
+                    size="mini"
+                    @click="selectFileGenerate(scope.row)"
+                  >
+                    选择
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <!-- 分页 -->
+            <el-pagination
+              v-model:current-page="currentPageDoc"
+              :page-size="pageSizeDoc"
+              :total="filteredDataDoc.length"
+              layout="prev, pager, next"
+              @current-change="handlePageChange"
+            />
+
+            <!-- PDF 预览对话框 -->
+            <el-dialog
+              title="Preview PDF"
+              :visible.sync="dialogVisibleDoc"
+              width="80%"
+            >
+              <iframe
+                v-if="previewUrlDoc"
+                :src="previewUrlDoc"
+                style="width: 100%; height: 600px; border: none;"
+              ></iframe>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisibleDoc = false">Close</el-button>
+              </span>
+            </el-dialog>
+
+          </div>
+            </el-card>
+
+            <el-card style="margin-top: 20px;">
+              <h2>参数设置</h2>
+              <el-form label-width="80px">
+                <el-form-item label="关键词">
+                  <el-input
+                    placeholder="输入自定义关键词（可选）"
+                    v-model="keywords"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="提示词">
+                  <el-input
+                    placeholder="输入自定义提示词（可选）"
+                    v-model="prompts"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="思维链">
+                  <el-input
+                    placeholder="输入自定义思维链（可选）"
+                    v-model="cot"
+                  ></el-input>
+                </el-form-item>
+
+                <el-form-item label="语言">
+                  <el-select
+                    placeholder="请选择语言"
+                    v-model="language"
+                  >
+                    <el-option label="简体中文" value="zh"></el-option>
+                    <el-option label="English" value="en"></el-option>
+                    <el-option label="日本語" value="jp"></el-option>
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item>
+                  <div class="button-container">
+                    <el-button
+                      type="success"
+                      @click="generateReport"
+                      :disabled="!filePath"
+                    >
+                      生成报告
+                    </el-button>
+
+                    <PromptSelector />
+                  </div>
+                </el-form-item>
+              </el-form>
+            </el-card>
+
+
+            <el-card>
+             <div style="margin: 10px">
+    <div style="width: 100%; display: flex; flex-direction: row">
+      <div style="margin-right: 4px">
+        <el-upload
+          ref="uploadRef"
+          multiple
+          :auto-upload="false"
+          :show-file-list="false"
+          v-model:file-list="uploadFileList"
+          :on-change="uploadFileChange"
+        >
+          <template #trigger>
+            <el-button size="small" @click="openUploadFile($event, null)"
+              >上传文件</el-button
+            >
+          </template>
+        </el-upload>
+      </div>
+      <div style="margin-right: 4px">
+        <el-button size="small" @click="openInsertFile($event, null)">
+          添加文件
+        </el-button>
+      </div>
+      <div style="margin-right: 4px">
+        <el-button size="small" @click="openInsertFolder($event, null)">
+          添加文件夹
+        </el-button>
+      </div>
+    </div>
+  </div>
+  <el-tree
+    style="max-width: 600px"
+    empty-text="没有文件，快去上传吧!"
+    :allow-drop="allowDrop"
+    :allow-drag="allowDrag"
+    :data="dataSource"
+    draggable
+    default-expand-all
+    node-key="id"
+    highlight-current
+    @node-drag-start="handleDragStart"
+    @node-drag-enter="handleDragEnter"
+    @node-drag-leave="handleDragLeave"
+    @node-drag-over="handleDragOver"
+    @node-drag-end="handleDragEnd"
+    @node-drop="handleDrop"
+  >
+    <template #default="scope">
+      <div style="width: 100%; display: flex; justify-content: space-between">
+        <div style="display: flex; justify-content: left">
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            "
+            v-if="scope.node.data.type === 'folder'"
+          >
+            <!-- 文件夹展示 -->
+            <el-icon><Folder /></el-icon>
+          </div>
+          <div v-else>
+            <!-- 文件展示 -->
+            <el-icon><Document /></el-icon>
+          </div>
+          <div style="margin-left: 3px">{{ scope.node.label }}</div>
+        </div>
+        <div style="margin-right: 20px">
+          <el-popover placement="right" trigger="hover">
+            <template #reference>
+              <el-icon><Tools /></el-icon>
+            </template>
+            <div class="but-list" style="display: flex; flex-direction: column">
+              <div v-if="scope.node.data.type === 'folder'">
+                <el-upload
+                  ref="uploadRef"
+                  multiple
+                  :auto-upload="false"
+                  :show-file-list="false"
+                  v-model:file-list="uploadFileList"
+                  :on-change="uploadFileChange"
+                >
+                  <template #trigger>
+                    <el-button
+                      style="width: 124px"
+                      @click="openUploadFile($event, scope.node)"
+                      >上传文件</el-button
+                    >
+                  </template>
+                </el-upload>
+              </div>
+
+              <div v-if="scope.node.data.type === 'folder'" style="width: 100%">
+                <el-button
+                  style="width: 100%"
+                  @click="openInsertFile($event, scope.node)"
+                >
+                  添加文件
+                </el-button>
+              </div>
+              <div v-if="scope.node.data.type === 'folder'" style="width: 100%">
+                <el-button
+                  style="width: 100%"
+                  @click="openInsertFolder($event, scope.node)"
+                  >添加文件夹</el-button
+                >
+              </div>
+              <div style="width: 100%">
+                <el-button
+                  style="width: 100%"
+                  @click="openUpdate($event, scope.node)"
+                >
+                  修改
+                </el-button>
+              </div>
+              <div style="width: 100%">
+                <el-button
+                  style="width: 100%"
+                  @click="openDelete($event, scope.node)"
+                  >删除</el-button
+                >
+              </div>
+            </div>
+          </el-popover>
         </div>
       </div>
-    </el-upload>
-    <div class="button-group">
-      <el-button type="primary" @click="submitUpload">Confirm Upload</el-button>
-      <el-button type="danger" @click="clearFiles">Clear</el-button>
-<!--      <el-button type="success" @click="generateReport" >Generate</el-button>-->
+    </template>
+  </el-tree>
+
+  <!-- 新增和修改文件 文件夹名称使用 -->
+  <el-dialog
+    v-model="fileDialogVisible"
+    :title="dialogTitle"
+    width="500"
+    :before-close="handleClose"
+    draggable
+    class="rounded-dialog"
+  >
+    当前文件路径: {{ dialogPath }}
+    <div style="display: flex; justify-content: center; margin-top: 10px">
+      <el-input v-model="dialogData" placeholder="Please input" />
     </div>
-  </div>
-    </el-card>
-          </div>
-<div class="container">
-                 <el-card >
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="confirm"> 确定 </el-button>
+      </div>
+    </template>
+  </el-dialog>
 
-  <el-form-item label="关键词">
-    <el-input  placeholder="填入您所研究的关键词（可选，默认为空）" v-model="keywords"></el-input>
-  </el-form-item>
-
-  <el-form-item label="语言">
-    <el-select  placeholder="请选择输出语言(默认中文)" v-model="language">
-      <el-option label="简体中文" value="zh"></el-option>
-      <el-option label="English" value="en"></el-option>
-      <el-option label="日本語" value="jp"></el-option>
-    </el-select>
-  </el-form-item>
-<div class="button-group">
-                        <!-- 添加Generate按钮 -->
-      <el-button type="success" @click="generateReport" :disabled="!filePath" >Generate</el-button>
-</div>
-                    </el-card>
-  </div>
-
-      </el-aside>
-      <el-main>
-  <el-card  >
-    <div class="report-container">
-  <div class="demo-pagination-block" >
-    <!--    <div v-for="(content) in (12)" class="report-output"  v-html="content">-->
-    <!-- 打印按钮 -->
-   <el-button type="primary" v-if="paginatedContent[0]" @click="printPDF"><el-icon><Download /></el-icon></el-button>
-    <div v-for="content in paginatedContent" class="report-output" v-html="content" id="report-html">
-
-    </div>
+  <el-dialog
+    v-model="deleteDialogVisible"
+    title="删除"
+    width="500"
+    draggable
+    class="rounded-dialog"
+  >
+    你确定要删除该文件吗？
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="deleteFileOrFolder"> 确定 </el-button>
+      </div>
+    </template>
+  </el-dialog>
+</el-card>
 
 
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :small="small"
-      :disabled="disabled"
-      :background="background"
-      layout="prev, pager, next, jumper"
-      :total="totalItems"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
-  </div>
-    </div>
-</el-card></el-main>
+
+          </el-col>
+
+
+
+          <!-- 报告显示 -->
+          <el-col :span="16">
+            <el-card>
+              <div class="report-container">
+                            <el-skeleton v-if="!paginatedContent.length" :rows="16" animated />
+                <el-button
+                  type="primary"
+                  v-if="paginatedContent.length"
+                  @click="printPDF"
+                  icon="Download"
+                  style="float: right; margin-bottom: 10px;"
+                >
+                  导出 PDF
+                </el-button>
+
+                <div
+                  v-for="content in paginatedContent"
+                  :key="content"
+                  class="report-output"
+                  v-html="content"
+                  id="report-html"
+                ></div>
+
+                <el-pagination
+                  v-model:current-page="currentPage"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[1, 5, 10]"
+                  :page-size="1"
+                  layout="prev, pager, next"
+                  :total="totalItems"
+                  @current-change="handleCurrentChange"
+                />
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-main>
     </el-container>
   </div>
-
-
-
-  <!--<img referrerpolicy="no-referrer"  src="https://img-blog.csdnimg.cn/direct/3941ac1cb3894e3b937b21c8f4598cac.png" alt="" style="width: 200px; height: 150px;">-->
-<!--<img   src="~@/assets/max_image.png" alt="" style="width: 200px; height: 150px;">-->
 
 </template>
 
 <script setup lang="ts">
-import { UploadFilled } from '@element-plus/icons-vue'
-import { ElButton, ElMessage } from 'element-plus'
-import { computed, ref } from 'vue'
-import { paper_report } from '@/apis/report/paper'
 
-const images = ref<string[]>([]);
-const uploadRef = ref(null)
-const fileList = ref([])
-const htmlContent = ref([]); // 存储后端返回的htmlContent列表
-// const htmlContent = ref(
-// ['<div class="markdown-body"><h2>Paper:1</h2>\n<ol>\n<li>标题: AutoKG: Efficient Automated Knowledge Graph (自动知识图谱:高效自动化知识图谱)</li>\n<li>Title: AutoKG: Efficient Automated Knowledge Graph</li>\n<li>Authors: Bohan Chen and Andrea L. Bertozzi</li>\n<li>Affiliation: Department of Mathematics, University of California, Los Angeles (加州大学洛杉矶分校数学系)</li>\n<li>Keywords: Large Language Models, Knowledge Graph, Graph Learning, Retrieval-augmented Generation</li>\n</ol>\n<h2>Summary:</h2>\n<ul>\n<li>(1): 本文的研究背景是传统方法在将大型语言模型（LLMs）与知识库链接时往往无法捕捉复杂的关系动态。</li>\n<li>(2): 过去的方法包括语义相似性搜索，存在问题是难以捕捉复杂的关系动态。本文的方法是有充分动机的，提出了一种轻量高效的自动化知识图谱构建方法。</li>\n<li>(3): 本文提出的研究方法是通过使用LLM提取关键词，然后通过图拉普拉斯学习评估每对关键词之间的关系权重。使用向量相似性和基于图的关联的混合搜索方案来丰富LLM响应。</li>\n<li>(4): 本文的方法在任务上取得了更全面和相互关联的知识检索机制，从而增强了LLMs在生成更具洞察力和相关性输出方面的能力。</li>\n</ul>\n<h2>Methods:</h2>\n<ul>\n<li>\n<p>(1): 使用大型语言模型（LLMs）提取关键词。</p>\n</li>\n<li>\n<p>(2): 通过图拉普拉斯学习评估每对关键词之间的关系权重。</p>\n</li>\n<li>\n<p>(3): 利用向量相似性和基于图的关联的混合搜索方案来丰富LLMs响应。</p>\n</li>\n<li>\n<p>(4): 通过构建更全面和相互关联的知识检索机制增强LLMs的生成能力。</p>\n</li>\n</ul>\n<h2>Conclusion:</h2>\n<ul>\n<li>\n<p>(1): 本研究的意义在于提出了一种轻量高效的自动化知识图谱构建方法，弥补了传统方法在捕捉复杂关系动态方面的不足。</p>\n</li>\n<li>\n<p>(2): 创新点: 提出了基于大型语言模型（LLMs）的关键词提取和图拉普拉斯学习的方法，增强了知识检索机制；表现: 在任务上取得更全面和相互关联的知识检索机制；工作量: 通过轻量高效的自动化方法减少了工作量。</p>\n</li>\n</ul></div>\n<img src="/src/assets/mermaid_imgs/diagram1.png" width="500" alt="">', '<div class="markdown-body"><h2>Paper:1</h2>\n<ol>\n<li>标题: AutoKG: Efficient Automated Knowledge Graph (自动知识图谱:高效自动化知识图谱)</li>\n<li>Title: AutoKG: Efficient Automated Knowledge Graph</li>\n<li>Authors: Bohan Chen and Andrea L. Bertozzi</li>\n<li>Affiliation: Department of Mathematics, University of California, Los Angeles (加州大学洛杉矶分校数学系)</li>\n<li>Keywords: Large Language Models, Knowledge Graph, Graph Learning, Retrieval-augmented Generation</li>\n</ol>\n<h2>Summary:</h2>\n<ul>\n<li>(1): 本文的研究背景是传统方法在将大型语言模型（LLMs）与知识库链接时往往无法捕捉复杂的关系动态。</li>\n<li>(2): 过去的方法包括语义相似性搜索，存在问题是难以捕捉复杂的关系动态。本文的方法是有充分动机的，提出了一种轻量高效的自动化知识图谱构建方法。</li>\n<li>(3): 本文提出的研究方法是通过使用LLM提取关键词，然后通过图拉普拉斯学习评估每对关键词之间的关系权重。使用向量相似性和基于图的关联的混合搜索方案来丰富LLM响应。</li>\n<li>(4): 本文的方法在任务上取得了更全面和相互关联的知识检索机制，从而增强了LLMs在生成更具洞察力和相关性输出方面的能力。</li>\n</ul>\n<h2>Methods:</h2>\n<ul>\n<li>\n<p>(1): 使用大型语言模型（LLMs）提取关键词。</p>\n</li>\n<li>\n<p>(2): 通过图拉普拉斯学习评估每对关键词之间的关系权重。</p>\n</li>\n<li>\n<p>(3): 利用向量相似性和基于图的关联的混合搜索方案来丰富LLMs响应。</p>\n</li>\n<li>\n<p>(4): 通过构建更全面和相互关联的知识检索机制增强LLMs的生成能力。</p>\n</li>\n</ul>\n<h2>Conclusion:</h2>\n<ul>\n<li>\n<p>(1): 本研究的意义在于提出了一种轻量高效的自动化知识图谱构建方法，弥补了传统方法在捕捉复杂关系动态方面的不足。</p>\n</li>\n<li>\n<p>(2): 创新点: 提出了基于大型语言模型（LLMs）的关键词提取和图拉普拉斯学习的方法，增强了知识检索机制；表现: 在任务上取得更全面和相互关联的知识检索机制；工作量: 通过轻量高效的自动化方法减少了工作量。</p>\n</li>\n</ul></div>\n<img src="/src/assets/mermaid_imgs/diagram2.png" width="500" alt="">']); // 静态的HTML内容数组
-
-const filePath = ref('')
-const keywords = ref('')
-const language = ref('')
+import { VueMermaidRender } from 'vue-mermaid-render'
+import { UploadFilled } from '@element-plus/icons-vue';
+import { ref, computed,onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
+import { paper_report,document_list } from '@/apis/report/paper';
+import type Node from "element-plus/es/components/tree/src/model/node";
+import type { DragEvents } from "element-plus/es/components/tree/src/model/useDragNode";
+import type {
+  AllowDropType,
+  NodeDropType,
+} from "element-plus/es/components/tree/src/tree.type";
+import PromptSelector from '@/components/PromptSelector.vue';
 
 
-const currentPage = ref(1); // 当前页码
-const pageSize = ref(1); // 每页显示的数量
-const small = ref(true); // 分页组件尺寸
-const disabled = ref(false); // 是否禁用分页组件
-const background = ref(false); // 分页组件背景
+const uploadRef = ref(null);
+const fileList = ref([]);
+const htmlContent = ref([]);
+const filePath = ref('');
+const keywords = ref('');
+const prompts = ref('');
+const cot = ref('');
+const language = ref('zh');
 
+const currentPage = ref(1);
+const pageSize = ref(1);
 
-const totalItems = computed(() => htmlContent.value.length); // 总条目数量为htmlContent列表的长度
+const totalItems = computed(() => htmlContent.value.length);
 
 const paginatedContent = computed(() => {
-  const startIndex = (currentPage.value - 1) * pageSize.value; // 当前页的起始索引
-  const endIndex = startIndex + pageSize.value; // 当前页的结束索引
-  return htmlContent.value.slice(startIndex, endIndex); // 根据当前页码和每页显示数量进行分页
+  const startIndex = (currentPage.value - 1) * pageSize.value;
+  const endIndex = startIndex + pageSize.value;
+  return htmlContent.value.slice(startIndex, endIndex);
 });
 
 const handleSuccess = (response, file, fileList) => {
-     // Assuming the server responds with the file_path
-  filePath.value = response.file_path; // Store the file_path in the filePath variable
-  // console.log('filePath', filePath);
-  // console.log('filePath.value', filePath.value);
-  ElMessage({
-    message: 'Upload successful!',
-    type: 'success',
-  })
-}
+  filePath.value = response.file_path;
+  ElMessage.success('上传成功！');
+};
 
 const handleError = (err, file, fileList) => {
-  ElMessage({
-    message: 'Error during upload: ' + err.message,
-    type: 'error',
-  })
-}
+  ElMessage.error('上传失败：' + err.message);
+};
 
 const submitUpload = () => {
   if (uploadRef.value) {
-    uploadRef.value.submit()
+    uploadRef.value.submit();
   }
-
-}
+};
 
 const clearFiles = () => {
-  fileList.value = []
-}
+  fileList.value = [];
+};
 
-
-function paper_reporting(form){
-  paper_report(form).then(res => {
+const paper_reporting = (form) => {
+  paper_report(form).then((res) => {
     if (res.data.code === 200) {
-          ElMessage({
-      message: res.data.msg,
-      type: 'success',
-    })
-       // Assuming the server responds with text/html content
-     htmlContent.value = res.data.data.report_html; // 更新htmlContent列表数据
-      // console.log(htmlContent.value)
-     filePath.value = ''
-       }else {
-      alert(res)
-      console.log(res)
-      // alert(res.data.msg)
+      ElMessage.success(res.data.msg);
+      htmlContent.value = res.data.data.report_html;
+      filePath.value = '';
+    } else {
+      ElMessage.error(res.data.msg);
     }
-  })
-}
+  });
+};
 
-const generateReport = async () => {
+const generateReport = () => {
   if (filePath.value) {
-      const formData = new FormData()
-      formData.append(   'file_path',filePath.value)
-      formData.append(   'keywords',keywords.value)
-      formData.append(   'language',language.value)
-      paper_reporting(formData)
+    const formData = new FormData();
+    formData.append('file_path', filePath.value);
+    formData.append('keywords', keywords.value);
+    formData.append('prompts', prompts.value);
+    formData.append('cot', cot.value);
+    formData.append('language', language.value);
+    paper_reporting(formData);
   }
 };
 
-// 定义方法来获取图片路径
-const getDiagramImagePath = (pageIndex: number) => {
-  return `/src/assets/mermaid_imgs/diagram${pageIndex + 1}.png`;
+
+
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val;
 };
 
-const handleSizeChange = (val: number) => {
-  console.log(`${val} items per page`)
-}
-const handleCurrentChange = (val: number) => {
-  console.log(`current page: ${val}`)
-}
-
- const printPDF = () => {
-  // 定义打印样式
+const printPDF = () => {
+    // 定义打印样式
   let printStyle = `
     <style>
       @media print {
-        #report-html {
+        #related-work-report {
           position: static !important;
         }
         .el-button {
@@ -286,83 +542,527 @@ p{
     </style>
   `;
 
-  // 获取<el-container>的HTML内容
-  let containerHtml = document.getElementById('report-html').innerHTML;
-
-  // 创建一个新的窗口，打印HTML内容
-let printWindow = window.open('www.xxx.com', '_blank');
-  printWindow.document.write(printStyle + containerHtml);
+  // 打印功能
+  const printContent = document.getElementById('report-html').innerHTML;
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(printStyle + printContent);
+  printWindow.document.close();
   printWindow.print();
-  printWindow.close();
+};
+
+
+
+
+const handleDragStart = (node: Node, ev: DragEvents) => {
+  console.log("drag start", node);
+};
+const handleDragEnter = (
+  draggingNode: Node,
+  dropNode: Node,
+  ev: DragEvents
+) => {
+  console.log("tree drag enter:", dropNode.label);
+};
+const handleDragLeave = (
+  draggingNode: Node,
+  dropNode: Node,
+  ev: DragEvents
+) => {
+  console.log("tree drag leave:", dropNode.label);
+};
+
+const handleDragOver = (draggingNode: Node, dropNode: Node, ev: DragEvents) => {
+  console.log("tree drag over:", dropNode.label);
+};
+
+const handleDragEnd = (
+  draggingNode: Node,
+  dropNode: Node,
+  dropType: NodeDropType,
+  ev: DragEvents
+) => {
+  console.log(
+    "tree drag end:",
+    draggingNode.data.label,
+    dropNode && dropNode.label,
+    dropType
+  );
+};
+const handleDrop = (
+  draggingNode: Node,
+  dropNode: Node,
+  dropType: NodeDropType,
+  ev: DragEvents
+) => {
+  console.log("tree drop:", dropNode.label, dropType);
+};
+const allowDrop = (draggingNode: Node, dropNode: Node, type: AllowDropType) => {
+  return dropNode.data.type === "folder";
+};
+const allowDrag = (draggingNode: Node) => {
+  console.log("allowDrag");
+  return !draggingNode.data.label.includes("Level three 3-1-1");
+};
+
+const dataSource = ref([
+  {
+    label: "Level one 1",
+    type: "folder",
+    path: "/Level one 1",
+    children: [
+      {
+        label: "Level two 1-1",
+        type: "folder",
+        path: "/Level one 1/Level two 1-1",
+        children: [
+          {
+            type: "file",
+            path: "/Level one 1/Level three 1-1-1/Level three 1-1-1",
+            label: "Level three 1-1-1",
+          },
+        ],
+      },
+    ],
+  },
+]);
+
+const fileDialogVisible = ref(false);
+const dialogTitle = ref(""); // 新增文件|文件夹,修改
+const dialogData = ref("");
+const dialogPath = ref("/");
+const deleteDialogVisible = ref(false);
+const fileOrFolderNode = ref();
+
+const handleClose = (done: () => void) => {
+  cancel();
+  done();
+};
+
+/**
+ * 取消
+ */
+const cancel = () => {
+  fileDialogVisible.value = false;
+};
+
+/**
+ * 确定
+ */
+const confirm = () => {
+  console.log("confirm: ", fileOrFolderNode);
+  if (dialogTitle.value === "新增文件" || dialogTitle.value === "新建文件夹") {
+    let data = {
+      label: dialogData.value,
+      type: "",
+      children: [],
+      path: "/" + dialogData.value,
+    };
+    if (fileOrFolderNode.value) {
+      data.path = fileOrFolderNode.value.data.path + "/" + dialogData.value;
+    }
+    if (dialogTitle.value === "新增文件") {
+      data.type = "file";
+    } else {
+      data.type = "folder";
+    }
+    append(fileOrFolderNode.value, data);
+  } else {
+    // 修改处理
+    let parent = null;
+    let data = {
+      label: dialogData.value,
+      type: fileOrFolderNode.value.data.type,
+      children: fileOrFolderNode.value.data.children,
+      path: "/" + dialogData.value,
+    };
+    if (fileOrFolderNode.value.parent.level != 0) {
+      parent = fileOrFolderNode.value.parent;
+      data.path = parent.data.path + "/" + data.label;
+    }
+    updateTreeNode(parent, fileOrFolderNode.value.data, data);
+  }
+  fileDialogVisible.value = false;
+};
+
+const openInsertFile = (even, node) => {
+  if (node) {
+    dialogPath.value = node.data.path + "/";
+  } else {
+    dialogPath.value = "/";
+  }
+  dialogTitle.value = "新增文件";
+  dialogData.value = "";
+  fileOrFolderNode.value = node;
+  fileDialogVisible.value = true;
+};
+
+/**
+ * 开始修改
+ * @param even
+ * @param node
+ */
+const openUpdate = (even, node) => {
+  if (node) {
+    dialogPath.value = node.data.path;
+  } else {
+    dialogPath.value = "/";
+  }
+  fileDialogVisible.value = true;
+  fileOrFolderNode.value = node;
+  dialogData.value = fileOrFolderNode.value.data.label;
+  dialogTitle.value = "修改";
+};
+
+const openInsertFolder = (even, node) => {
+  if (node) {
+    dialogPath.value = node.data.path;
+  } else {
+    dialogPath.value = "/";
+  }
+  dialogData.value = "";
+  fileOrFolderNode.value = node;
+  dialogTitle.value = "新建文件夹";
+  fileDialogVisible.value = true;
+};
+
+const openDelete = (even, node) => {
+  fileOrFolderNode.value = node;
+  deleteDialogVisible.value = true;
+};
+
+const deleteFileOrFolder = (even) => {
+  // 删除该文件
+  remove(fileOrFolderNode.value, fileOrFolderNode.value.data);
+  deleteDialogVisible.value = false;
+};
+
+/**
+ * 添加
+ * @param node 父节点
+ * @param data 要添加的数据
+ */
+const append = (node, data) => {
+  if (isNameDuplicate(node, null, data)) {
+    ElMessage.error("文件名重复");
+    return;
+  }
+  const newChild = data;
+  if (node) {
+    if (!node.data.children) {
+      node.data.children = [];
+    }
+    node.data.children.push(newChild);
+  } else {
+    dataSource.value.push(newChild);
+  }
+};
+
+/**
+ * 删除
+ * @param node 节点
+ * @param data 数据
+ */
+const remove = (node: Node, data) => {
+  console.log("all data:", dataSource.value);
+  const parent = node.parent;
+  const children = parent.data.children || parent.data;
+  const index = children.findIndex((d) => d.path === data.path);
+  children.splice(index, 1);
+  dataSource.value = [...dataSource.value];
+};
+
+const updateTreeNode = (parentNode, oldData, newData) => {
+  console.log(
+    "parentNode:",
+    parentNode,
+    "oldData:",
+    oldData,
+    "newData:",
+    newData
+  );
+  if (isNameDuplicate(parentNode, oldData, newData)) {
+    ElMessage.error("文件名重复");
+    return;
+  }
+  let index: number;
+  if (parentNode && parentNode.data) {
+    // 查找 newData.path 在 parentNode.data.children 中的索引
+    index = parentNode.data.children.findIndex(
+      (child) => child.path === oldData.path
+    );
+    // 如果找到索引，则更新该位置的数据
+    if (index !== -1) {
+      parentNode.data.children[index] = newData;
+    } else {
+      console.error(
+        "找不到, index:",
+        index,
+        "parentNode.data",
+        parentNode.data,
+        "newData",
+        newData
+      );
+    }
+  } else {
+    index = dataSource.value.findIndex((item) => item.path === oldData.path);
+    // 如果找到索引，则更新该位置的数据
+    if (index !== -1) {
+      dataSource.value[index] = newData;
+    } else {
+      console.error(
+        "找不到, index:",
+        index,
+        "parentNode.data",
+        parentNode.data,
+        "newData",
+        newData
+      );
+    }
+  }
+
+  console.log(dataSource.value);
+};
+
+/**
+ * 判断名称是否有相同的
+ */
+const isNameDuplicate = (parentNode, oldData, newData) => {
+  console.log(
+    "parentNode:",
+    parentNode,
+    "oldData:",
+    oldData,
+    "newData: ",
+    newData
+  );
+  if (oldData && oldData.label === newData.label) return false;
+  if (parentNode) {
+    for (let i = 0; i < parentNode.data.children.length; i++) {
+      const child = parentNode.data.children[i];
+      if (child.label === newData.label) {
+        return true;
+      }
+    }
+  } else {
+    for (let i = 0; i < dataSource.value.length; i++) {
+      const child = dataSource.value[i];
+      if (child.label === newData.label) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+/**
+ * 文件上传操作
+ */
+const uploadFileList = ref([]);
+
+const openUploadFile = (even, node) => {
+  if (node) {
+    dialogPath.value = node.data.path;
+  } else {
+    dialogPath.value = "/";
+  }
+  fileOrFolderNode.value = node;
+};
+
+const uploadFileChange = (uploadFile, uploadFiles) => {
+  let data = {
+    label: uploadFile.name,
+    type: "file",
+    path: "/" + uploadFile.name,
+    uid: uploadFile.uid,
+  };
+  if (fileOrFolderNode.value) {
+    data.path = fileOrFolderNode.value.data.path + "/" + uploadFile.name;
+  }
+  append(fileOrFolderNode.value, data);
+};
+function flattenTree(trees) {
+  const result = [];
+
+  function traverse(node) {
+    // 添加当前节点到结果数组
+    result.push({
+      label: node.label,
+      type: node.type,
+      path: node.path,
+    });
+
+    // 如果节点有children，则递归遍历它们
+    if (Array.isArray(node.children)) {
+      node.children.forEach(traverse);
+    }
+  }
+
+  // 遍历输入的树数组
+  trees.forEach((tree) => {
+    traverse(tree); // 从每个树的根节点开始遍历
+  });
+
+  // 返回结果数组
+  return result;
 }
 
+console.log("dataSource.value:", dataSource.value);
+console.log("result:", flattenTree(dataSource.value));
 
 
+
+interface Document {
+  date: string;
+  title: string;
+  abstract: string;
+  size: number;
+}
+
+// 响应式变量
+const allDataDoc = ref<Document[]>([]); // 原始数据
+const filteredDataDoc = ref<Document[]>([]); // 搜索过滤后的数据
+const pagedDataDoc = ref<Document[]>([]); // 当前分页展示的数据
+const currentPageDoc = ref(1); // 当前页码
+const pageSizeDoc = ref(3); // 每页条数
+const searchQueryDoc = ref(''); // 搜索关键字
+const dialogVisibleDoc = ref(false); // 控制对话框显示
+const previewUrlDoc = ref(''); // 预览文件的 URL
+
+// 获取后端数据
+const fetchDocuments = async () => {
+  try {
+    const { data } = await document_list();
+    console.log(data);
+    allDataDoc.value = data || [];
+    filteredDataDoc.value = allDataDoc.value; // 初始筛选数据等于全部数据
+    updatepagedDataDoc(); // 初始化分页数据
+  } catch (error) {
+    console.error('Failed to fetch documents:', error);
+  }
+};
+
+// 更新分页数据
+const updatepagedDataDoc = () => {
+  const start = (currentPageDoc.value - 1) * pageSizeDoc.value;
+  const end = start + pageSizeDoc.value;
+  pagedDataDoc.value = filteredDataDoc.value.slice(start, end);
+};
+
+// 搜索处理
+const handleSearch = () => {
+  currentPageDoc.value = 1; // 搜索后从第一页开始
+  filteredDataDoc.value = allDataDoc.value.filter((doc) =>
+    doc.title.toLowerCase().includes(searchQueryDoc.value.toLowerCase())
+  );
+  updatepagedDataDoc(); // 更新分页数据
+};
+
+// 分页变化处理
+const handlePageChange = (page: number) => {
+  currentPageDoc.value = page;
+  updatepagedDataDoc(); // 更新当前页数据
+};
+
+// 动态行样式
+const tableRowClassName = ({ rowIndex }: { rowIndex: number }) => {
+  return rowIndex % 2 === 0 ? 'warning-row' : '';
+};
+
+// 点击预览文件
+const selectFileGenerate = (row: Document) => {
+  console.log('Preview button clicked:', row.title);
+  const filePath = `./uploads/docs/${row.title}`;
+  if (row.title.endsWith('.pdf')) {
+    const formData = new FormData();
+    formData.append('file_path', filePath);
+    formData.append('keywords', keywords.value);
+    formData.append('language', language.value);
+    paper_reporting(formData);
+    console.log('selectFileGenerate set to:', formData.get('file_path'));
+  } else {
+    alert('Only PDF files can be previewed.');
+  }
+};
+
+
+// 初始化加载数据
+onMounted(() => {
+  fetchDocuments();
+});
 
 </script>
 
+
+
 <style scoped>
-.upload-container {
-padding: 20px;
+.common-layout {
+  //background-color: #f5f7fa;
+}
+
+h1 {
+  //color: #303133;
+  font-size: 24px;
+  margin: 0;
+  padding: 20px 0;
   text-align: center;
 }
 
+h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
 .upload-demo {
-
-  display: inline-block;
-  //margin-right: 10px;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-.demo-pagination-block + .demo-pagination-block {
+.el-upload__text {
   margin-top: 10px;
-
-}
-.demo-pagination-block .demonstration {
-
-  margin-bottom: 16px;
-}
-
-.upload-area {
-
-  cursor: pointer;
-  padding: 30px 200px;
-  //border: px dashed #d9d9d9;
-  border-radius: 6px;
-  transition: border-color .3s;
-}
-
-.upload-area:hover {
-  border-color: #409eff;
 }
 
 .button-group {
   display: flex;
-  justify-content: center;
-  margin-top: 20px;
+  justify-content: space-between;
 }
 
-.el-icon--upload {
-  color: #409eff;
-  font-size: 20px;
+.report-container {
+  position: relative;
+  min-height: 400px;
 }
 
 .report-output {
+  margin-bottom: 20px;
+}
+
+#report-html {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 6px;
+}
+
+.el-footer {
+  background-color: #f5f7fa;
+  line-height: 60px;
+}
+
+.el-pagination {
+  text-align: center;
   margin-top: 20px;
 }
-.common-layout {
-  background-image: radial-gradient(circle at center, #baf39d, #a8d8d8, #e5dfc8);
+
+.rounded-dialog {
+  border-radius: 10px;
 }
 
-
-.report-container {
-      flex: 1;
-    height: 750px;
-    overflow-y: scroll;
-    padding: 10px;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
+.button-container {
+  display: flex;
+  justify-content: space-between; /* 子元素间距自动分配 */
+  width: 100%; /* 父容器宽度为 100% */
 }
-.container {
-  padding: 20px; /* 调整所需的边距值 */
+
+.but-list > div {
+  margin: 2px;
 }
 </style>

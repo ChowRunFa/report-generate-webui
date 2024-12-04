@@ -30,9 +30,9 @@ class KG_Class():
     def __init__(self, texts: list, source: list,
                  main_topic: str,
                  embedding: bool = True, embedding_model: str = 'bge-m3',args=None):
-        self.api_key = args.api_key
-        self.api_base = args.api_base
-        self.llm_model = args.model
+        self.api_key = args['api_key']
+        self.api_base = args['api_base']
+        self.llm_model = args['model']
         self.texts = texts
         self.embedding_model = embedding_model
         self.source = source

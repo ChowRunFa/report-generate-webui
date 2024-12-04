@@ -26,13 +26,15 @@ from api.api_report import api_report
 from api.api_llm import api_llm
 from api.api_relatedwork import api_relatedwork
 from api.api_text_evaluate import api_text_evaluate
-# from api.api_instagraph import api_instagraph
+from api.api_kg import api_autokg
+from api.api_instagraph import api_instagraph
 app.register_blueprint(api_upload, url_prefix="")
 app.register_blueprint(api_report, url_prefix="")
 app.register_blueprint(api_llm, url_prefix="")
 app.register_blueprint(api_relatedwork, url_prefix="")
 app.register_blueprint(api_text_evaluate, url_prefix="")
-# app.register_blueprint(api_instagraph, url_prefix="")
+app.register_blueprint(api_autokg, url_prefix="")
+app.register_blueprint(api_instagraph,url_prefix="/instagraph")
 
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}}) # 注册CORS, "/*" 允许访问所有api

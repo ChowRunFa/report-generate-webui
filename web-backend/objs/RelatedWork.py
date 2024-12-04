@@ -296,7 +296,7 @@ class RelatedWork:
         json_data = {"prompt": complete_prompt}
         response = self.run_open_ai_api(json_data)
         print({'relatedwork':response,'reference':reference_markdown})
-        return result(200,'OK',{'relatedwork':markdown_convertion(response),'reference':reference_markdown})
+        return result(200,'OK',{'relatedwork':markdown_convertion(response),'reference':markdown_convertion(reference_markdown)})
     def generate_relatedwork_stream(self):
         reference_markdown, cite_text = self.generate_reference()
         print(reference_markdown)

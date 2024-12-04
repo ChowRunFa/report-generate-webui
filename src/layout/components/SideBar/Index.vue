@@ -13,7 +13,7 @@
         <el-icon>
           <IconLogo />
         </el-icon>
-        <span v-if="!isCollapse"> 智能报告生成 </span>
+        <span v-if="!isCollapse"> 智能报告生成系统V1.0 </span>
       </div>
       <MenuItem
         v-for="item in menus"

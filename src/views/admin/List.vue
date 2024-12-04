@@ -1,7 +1,7 @@
 <template>
   <div class="about bg-gradient-to-r from-blue-50 to-blue-100 min-h-screen flex items-center justify-center p-6">
     <div class="container w-full h-full max-w-5xl bg-white p-10 rounded-3xl shadow-2xl transform transition duration-300 hover:scale-105 flex flex-col justify-between">
-      <h1 class="text-4xl font-bold text-center mb-6 text-blue-700">🌟 文本评估工具 🌟</h1>
+      <h1 >📜 文本质量评估 🔎</h1>
 
       <!-- Candidate Text Section -->
       <div class="flex-1 mb-6 overflow-auto">
@@ -34,6 +34,12 @@
           {{ isLoading ? '评估中...' : '📝 评估' }}
         </button>
       </div>
+
+    <el-skeleton
+      v-if="!scores"
+      :rows="6"
+      animated
+      style="margin-top: 60px;" /> <!-- 在这里设置外边距 -->
 
       <!-- Scores Display -->
       <div v-if="scores" class="results bg-white p-4 rounded-lg shadow-md border-t-4 border-blue-400 transition-all duration-300 ease-in-out mt-4 ">
@@ -139,12 +145,20 @@ const submitTexts = async () => {
 
 </script>
 <style scoped>
+h1 {
+  //color: #303133;
+  font-size: 24px;
+  margin: 0;
+  padding: 20px 0;
+  text-align: center;
+}
+
 .about {
   height: 100vh; /* Ensures full-page height */
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #e0f7fa, #e1f5fe);
+  //background: linear-gradient(135deg, #e0f7fa, #e1f5fe);
 }
 
 .container {
@@ -155,7 +169,7 @@ const submitTexts = async () => {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   padding: 40px;
-  background: white;
+  //background: white;
   display: flex;
   flex-direction: column;
 }
@@ -163,7 +177,7 @@ const submitTexts = async () => {
 textarea {
   width: 100%;
   padding: 15px;
-  border: 1px solid #d1d5db;
+  //border: 1px solid #d1d5db;
   border-radius: 10px;
   resize: none;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1);

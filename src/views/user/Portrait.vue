@@ -1,5 +1,8 @@
 <template >
     <div class="common-layout" >
+<!--            <el-header>-->
+        <h1 >📑综合报告生成‍📍</h1>
+<!--      </el-header>-->
     <el-container>
 
       <el-aside width="500px" >
@@ -41,48 +44,24 @@
                 <h1 style=" text-align: center; font-size: larger" >参数说明</h1>
                 <div class="demo-collapse">
         <el-collapse v-model="activeName" accordion>
-          <el-collapse-item title="Consistency" name="1">
+          <el-collapse-item title="基础摘要" name="1">
             <div>
-              Consistent with real life: in line with the process and logic of real
-              life, and comply with languages and habits that the users are used to;
-            </div>
-            <div>
-              Consistent within interface: all elements should be consistent, such
-              as: design style, icons and texts, position of elements, etc.
+              请输入基础摘要：这里应该包含论文或文章的核心思想和结论的简短概述。
             </div>
           </el-collapse-item>
-          <el-collapse-item title="Feedback" name="2">
+          <el-collapse-item title="基础论文网址" name="2">
             <div>
-              Operation feedback: enable the users to clearly perceive their
-              operations by style updates and interactive effects;
-            </div>
-            <div>
-              Visual feedback: reflect current state by updating or rearranging
-              elements of the page.
+              请输入基础论文网址：这里应该包含论文的在线版本链接，推荐使用arxiv网址链接，方便读者访问。例如：'https://arxiv.org/abs/2402.09760'
             </div>
           </el-collapse-item>
-          <el-collapse-item title="Efficiency" name="3">
+          <el-collapse-item title="关键词" name="3">
             <div>
-              Simplify the process: keep operating process simple and intuitive;
-            </div>
-            <div>
-              Definite and clear: enunciate your intentions clearly so that the
-              users can quickly understand and make decisions;
-            </div>
-            <div>
-              Easy to identify: the interface should be straightforward, which helps
-              the users to identify and frees them from memorizing and recalling.
+              请输入关键词：这里应该列出描述论文主题和内容的词汇，有助于检索和识别。例如:LLMs,QA
             </div>
           </el-collapse-item>
-          <el-collapse-item title="Controllability" name="4">
+          <el-collapse-item title="引用格式" name="4">
             <div>
-              Decision making: giving advices about operations is acceptable, but do
-              not make decisions for the users;
-            </div>
-            <div>
-              Controlled consequences: users should be granted the freedom to
-              operate, including canceling, aborting or terminating current
-              operation.
+              请输入引用格式：这里应该说明在撰写论文或报告时，引用他人工作时遵循的特定样式指南。
             </div>
           </el-collapse-item>
         </el-collapse>
@@ -97,7 +76,8 @@
   <div class="upload-container">
 
             <el-card >
-                          <h1 style=" text-align: center;  ">本地文件分析</h1>
+              <h1 style=" text-align: center;  ">本地文件分析</h1>
+                <el-text class="mx-1" type="danger">测试功能/暂不可用</el-text>
     <el-upload
       ref="uploadRef"
       class="upload-demo upload-vertical"
@@ -112,14 +92,14 @@
       <div class="upload-area " >
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text " >
-          Drop file here or <em>click to upload</em>
+         将文件拖到此处 <em>或点击上传</em>
         </div>
       </div>
     </el-upload>
     <div class="button-group">
-      <el-button type="primary" @click="submitUpload">Confirm Upload</el-button>
-      <el-button type="danger" @click="clearFiles">Clear</el-button>
-       <el-button type="success" @click="generateReport" :disabled="!filePath" >Generate</el-button>
+      <el-button type="primary" @click="submitUpload">确认上传</el-button>
+      <el-button type="danger" @click="clearFiles">清空</el-button>
+       <el-button type="success" @click="generateReport" :disabled="!filePath" >生成</el-button>
 <!--      <el-button type="success" @click="generateReport" >Generate</el-button>-->
     </div>
                       </el-card >
@@ -136,34 +116,36 @@
           <el-card>
             <div class="main-content">
                  <el-button type="primary" v-if="related_work_content" @click="printPDF"><el-icon><Download /></el-icon></el-button>
-
+                            <el-skeleton v-if="!related_work_content" :rows="10" animated />
                    <div v-if="related_work_content"><h2>Report:</h2></div>
                   <div v-html="related_work_content" id="related-work-report">
 
                   </div>
                     <div v-if="reference_content"><h2>References:</h2> </div>
 <!--                <div v-html="markdown.render(reference_content)"></div>-->
-                <div v-html="reference_content"></div>
+                <div v-html="reference_content" id="related-work-reference">
+
+                </div>
 
            </div>
           </el-card>
        <div class="user-input">
 
           <el-card >
-            <h1 style=" text-align: center;  ">通过网络搜索</h1>
+            <h1 style=" text-align: center;  ">基于互联网检索生成</h1>
    <!-- 下方用户输入区 -->
         <el-form ref="form" :model="form" label-width="120px">
-        <el-form-item label="base_abstract">
+        <el-form-item label="基础摘要">
           <el-input v-model="form.base_abstract" placeholder="请输入base_abstract" @input="forceUpdate">></el-input>
         </el-form-item>
-        <el-form-item label="base_paper_url">
-          <el-input v-model="form.base_paper_url" placeholder="请输入base_paper_url" @input="forceUpdate"></el-input>
+        <el-form-item label="基础网址">
+          <el-input v-model="form.base_paper_url" placeholder="请输入base_paper_url" @input="forceUpdate" ></el-input>
         </el-form-item>
-        <el-form-item label="keyword">
-          <el-input v-model="form.keyword" placeholder="请输入keyword" @input="forceUpdate"></el-input>
+        <el-form-item label="关  键  词">
+          <el-input v-model="form.keyword" placeholder="请输入keyword；" @input="forceUpdate"></el-input>
         </el-form-item>
-        <el-form-item label="cite_format">
-          <el-input v-model="form.cite_format" placeholder="请输入cite_format" @input="forceUpdate"></el-input>
+        <el-form-item label="引用格式">
+          <el-input v-model="form.cite_format" placeholder="请输入cite_format;" @input="forceUpdate"></el-input>
         </el-form-item>
         <div class="button-container">
           <el-button type="primary" @click="submitForm">提交</el-button>
@@ -204,8 +186,8 @@ const activeName = ref('1')
 // 表单数据
 const form = ref({
   base_abstract: '',
-  base_paper_url: '',
-  keyword: '',
+  base_paper_url: 'https://arxiv.org/abs/2402.09760',
+  keyword: 'LLMs、QA',
   cite_format: '',
 });
 
@@ -369,11 +351,12 @@ p{
   `;
 
   // 获取<el-container>的HTML内容
-  let containerHtml = document.getElementById('related-work-report').innerHTML;
+let containerHtml = document.getElementById('related-work-report').innerHTML;
+let containerHtml_ref = document.getElementById('related-work-reference').innerHTML;
 
   // 创建一个新的窗口，打印HTML内容
 let printWindow = window.open('www.xxx.com', '_blank');
-  printWindow.document.write(printStyle + containerHtml);
+  printWindow.document.write(printStyle + containerHtml + containerHtml_ref);
   printWindow.print();
   printWindow.close();
 }
@@ -382,14 +365,19 @@ let printWindow = window.open('www.xxx.com', '_blank');
 </script>
 
 <style scoped>
+
+h1 {
+  //color: #303133;
+  font-size: 24px;
+  margin: 0;
+  padding: 20px 0;
+  text-align: center;
+}
+
 .form-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-}
-
-.common-layout {
-  background-image: radial-gradient(circle at center, #baf39d, #a8d8d8, #e5dfc8);
 }
 
 .main-content {
@@ -427,4 +415,7 @@ padding: 20px;
 .slider-value {
   margin-left: 5px;
 }
+
+
+
 </style>

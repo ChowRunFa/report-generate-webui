@@ -1,6 +1,6 @@
 <template>
   <el-footer>
-    <div>©{{ new Date().getFullYear() }}</div>
+    <div style="text-align: center;">©{{ new Date().getFullYear() }}智能报告生成系统</div>
   </el-footer>
 </template>
 

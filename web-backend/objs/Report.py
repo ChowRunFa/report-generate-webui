@@ -33,7 +33,7 @@ class Report:
             )
         # llm = ChatOpenAI(
         #         model_name="chatglm",
-        #         openai_api_base="http://localhost:8000/v1",
+        #         openai_api_base="http://59.77.7.24:8000/v1",
         #         openai_api_key="EMPTY",
         #         streaming=False,
         #     )
@@ -58,9 +58,9 @@ class Report:
             text += 'Title:' + paper.title
             text += 'Url:' + paper.url
             text += 'Abstract:' + paper.abs
-            print('-----paper.abs:---', text, '-----paper.abs:---')
+            # print('-----paper.abs:---', text, '-----paper.abs:---')
             text += 'Paper_info:' + paper.section_text_dict['paper_info']
-            print('-----text:---', text, '-----text:---')
+            # print('-----text:---', text, '-----text:---')
             # intro
             text += list(paper.section_text_dict.values())[0]
             chat_summary_text = ""
@@ -237,7 +237,7 @@ class Report:
         ]
         llm = self.llm
         response = llm(messages)
-        print("method_result:\n", response.content)
+        # print("method_result:\n", response.content)
         # print("prompt_token_used:", response.prompt_tokens,
         #       "completion_token_used:", response.completion_tokens,
         #       "total_token_used:", response.total_tokens)
@@ -272,7 +272,7 @@ class Report:
         llm = self.llm
         response = llm(messages)
         # result = response.content
-        print("conclusion_result:\n", response.content)
+        # print("conclusion_result:\n", response.content)
         # print("prompt_token_used:", response.prompt_tokens,
         #       "completion_token_used:", response.completion_tokens,
         #       "total_token_used:", response.total_tokens)
@@ -326,7 +326,7 @@ class Report:
         llm = self.llm
 
         result = llm(prompt).content
-        print("summary_result:\n", result)
+        # print("summary_result:\n", result)
         return result
 # if __name__ == '__main__':
 

@@ -50,6 +50,16 @@ const menus = [
         }
       },
       {
+        path: '/user/fmreport',
+        name: 'FMReport',
+        component: () => import('@/views/user/FMReport.vue'),
+        meta: {
+          title: '框架报告',
+          icon: 'film',
+          showMenu: true
+        }
+      },
+      {
         path: '/user/portrait',
         name: 'userPortrait',
         component: () => import('@/views/user/Portrait.vue'),
@@ -64,7 +74,7 @@ const menus = [
         name: 'userPatent',
         component: () => import('@/views/user/Patent.vue'),
         meta: {
-          title: '文献综述',
+          title: '思维导图',
           icon: 'notebook',
           showMenu: true
         }
@@ -112,6 +122,45 @@ const menus = [
           }
 
         ]
+      }
+    ]
+  },
+  {
+    path: '/logic',
+    name: 'Prompt&Cot',
+    meta: {
+      title: '提示工程',
+      icon: 'Bell',
+      showMenu: true
+    },
+    children: [
+          {
+            path: '/logic/prompt',
+            name: 'prompt',
+            component: () => import('@/views/logic/Prompt.vue'),
+            meta: {
+              title: '指令优化',
+              icon:'MagicStick',
+              showMenu: true
+            },
+          }, {
+            path: '/logic/ai_framework',
+            name: 'ai_framework',
+            component: () => import('@/views/logic/AIFramework.vue'),
+            meta: {
+              title: '框架生成',
+              icon: 'Reading',
+              showMenu: true
+            }
+          },{
+            path: '/logic/get_framework',
+            name: 'get_framework',
+            component: () => import('@/views/logic/GetFramework.vue'),
+            meta: {
+              title: '框架管理',
+              icon:'open',
+              showMenu: true
+            },
       }
     ]
   },

@@ -28,7 +28,7 @@ SELECT_PROMPT = """
 #没有思维导图!!!测试发现模型始终会优先选择思维导图
 #流程图
 PROMPT_1 = """
-请你给出围绕“{subject}”的逻辑关系图，使用mermaid语法，mermaid语法举例：
+请你给出围绕“{subject}”的逻辑关系图，使用mermaid语法(注意不要在括号内嵌套括号，这可能导致渲染失败！)，mermaid语法举例：
 ```mermaid
 graph TD
     P(编程) --> L1(Python)
@@ -112,7 +112,7 @@ stateDiagram-v2
 """
 #实体关系图
 PROMPT_7 = """
-请你给出围绕“{subject}”的实体关系图，使用mermaid语法，mermaid语法举例：
+请你给出围绕“{subject}”的实体关系图，使用mermaid语法(注意不要在括号内嵌套括号，这可能导致渲染失败！)，mermaid语法举例：
 ```mermaid
 graph LR
     A[Hard skill] --> B(Programming)
@@ -123,7 +123,7 @@ graph LR
 """
 #象限提示图
 PROMPT_8 = """
-请你给出围绕“{subject}”的象限图，使用mermaid语法，mermaid语法举例：
+请你给出围绕“{subject}”的象限图，使用mermaid语法(注意不要在括号内嵌套括号，这可能导致渲染失败！)，mermaid语法举例：
 ```mermaid
 graph LR
     A[Hard skill] --> B(Programming)
@@ -251,11 +251,19 @@ def get_mermaid(content,llm):
     elif gpt_say == '9':
         i_say = PROMPT_9.format(subject=results_txt)
     i_say_show_user = f'请根据判断结果绘制相应的图表。如需绘制思维导图请使用参数调用,同时过大的图表可能需要复制到在线编辑器中进行渲染。'
-    gpt_say = llm([HumanMessage(content=i_say)]).content
+    addition = '请确保只需要返回一个图表结果！不要出现全角的括号等字符！以及括号的内容里不要再出现括号！'
+    gpt_say = llm([HumanMessage(content=i_say+'\n'+addition)]).content
     return(gpt_say)
 
 def get_latest_folder():
-    directory = "../uploads/paper/"  # 指定文件夹路径
+    directory = "./uploads/paper/"  # 指定文件夹路径
+    # directory = "D:/Pycharm_Projects/report-generate-webui/web-backend/uploads/paper/"  # 指定文件夹路径
+    # 获取当前文件的目录
+    # directory = os.path.abspath(rela_directory)
+    print(directory)
+    if not os.path.exists(directory):
+        return "Directory does not exist", 404
+
     folders = os.listdir(directory)  # 列出文件夹下的所有文件和文件夹
     folders_with_timestamp = [(folder, os.path.getmtime(directory + folder)) for folder in folders]
     folders_with_timestamp.sort(key=lambda x: x[1], reverse=True)  # 根据时间戳进行降序排序
